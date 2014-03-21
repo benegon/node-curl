@@ -356,6 +356,10 @@ class NodeCurl
 
 	static v8::Handle<v8::Value> setopt_int(const v8::Arguments & args)
 	{
+		NodeCurl   * node_curl = unwrap(args.This());
+		if (node_curl->in_curlm)
+			return raise("setopt: curl session is running.");
+
 		return unwrap(args.This())->setopt(args[0], args[1]->Int32Value());
 	}
 
@@ -364,6 +368,9 @@ class NodeCurl
 		// Create a string copy
 		// https://github.com/jiangmiao/node-curl/issues/3
 		NodeCurl   * node_curl = unwrap(args.This());
+		if (node_curl->in_curlm)
+			return raise("setopt: curl session is running.");
+
 		int key = args[0]->Int32Value();
 		v8::String::Utf8Value value(args[1]);
 		int length = value.length();
@@ -374,6 +381,9 @@ class NodeCurl
 	static v8::Handle<v8::Value> setopt_slist(const v8::Arguments & args)
 	{
 		NodeCurl   * node_curl = unwrap(args.This());
+		if (node_curl->in_curlm)
+			return raise("setopt: curl session is running.");
+
 		curl_slist * slist     = value_to_slist(args[1]);
 		node_curl->slists.push_back(slist);
 		return node_curl->setopt(args[0], slist);
@@ -382,6 +392,9 @@ class NodeCurl
 	static v8::Handle<v8::Value> setopt_httppost(const v8::Arguments & args)
 	{
 		NodeCurl * node_curl = unwrap(args.This());
+		if (node_curl->in_curlm)
+			return raise("setopt: curl session is running.");
+
 		NodeCurlHttppost &httppost = node_curl->httppost;
 		v8::Handle<v8::Array> rows = v8::Handle<v8::Array>::Cast(args[0]);
 		httppost.reset();
