@@ -136,6 +136,8 @@ class NodeCurl
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA,     this);
 		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION,  header_function);
 		curl_easy_setopt(curl, CURLOPT_HEADERDATA,      this);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION,  progress_function);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA,      this);
 		curls[curl] = this;
 	}
 
@@ -204,6 +206,11 @@ class NodeCurl
 		return nodecurl->on_header(ptr, size * nmemb);
 	}
 
+	static int progress_function(void *userdata, double dltotal, double dlnow, double ultotal, double ulnow){
+		NodeCurl *nodecurl = (NodeCurl*)userdata;
+		return nodecurl->on_progress(dltotal, dlnow, ultotal, ulnow);
+	}
+
 	size_t on_write(char *data, size_t n)
 	{
 		static v8::Persistent<v8::String> SYM_ON_WRITE = v8::Persistent<v8::String>::New(v8::String::NewSymbol("on_write"));
@@ -236,6 +243,26 @@ class NodeCurl
 				return rt->Int32Value();
 		}
 		return n;
+	}
+
+	int on_progress(double dltotal, double dlnow, double ultotal, double ulnow){
+		static v8::Persistent<v8::String> SYM_ON_PROGRESS = v8::Persistent<v8::String>::New(v8::String::NewSymbol("on_progress"));
+		v8::Handle<v8::Value> cb = handle->Get(SYM_ON_PROGRESS);
+		if (cb->IsFunction())
+		{
+
+			v8::Local<v8::Number> dlt = v8::Number::New(dltotal);
+			v8::Local<v8::Number> dln = v8::Number::New(dlnow);
+			v8::Local<v8::Number> ult = v8::Number::New(ultotal);
+			v8::Local<v8::Number> uln = v8::Number::New(ulnow);
+			v8::Handle<v8::Value> argv[] = { dlt, dln, ult, uln};
+			v8::Handle<v8::Value> rt = cb->ToObject()->CallAsFunction(handle, 4, argv);
+			if (rt.IsEmpty())
+				return 0;
+			else
+				return rt->Int32Value();
+		}
+		return 0;
 	}
 
 	void on_end(CURLMsg *msg)
