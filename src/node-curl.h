@@ -13,6 +13,58 @@
 
 #define NODE_CURL_EXPORT(name) export_curl_options(t, #name, name, sizeof(name) / sizeof(CurlOption));
 
+#ifdef _MSC_VER
+
+/* Taken from http://stackoverflow.com/questions/2915672/snprintf-and-visual-studio-2010 */
+#define snprintf c99_snprintf
+
+inline int c99_vsnprintf(char* str, size_t size, const char* format, va_list ap)
+{
+    int count = -1;
+
+    if (size != 0)
+        count = _vsnprintf_s(str, size, _TRUNCATE, format, ap);
+    if (count == -1)
+        count = _vscprintf(format, ap);
+
+    return count;
+}
+inline int c99_snprintf(char* str, size_t size, const char* format, ...)
+{
+    int count;
+    va_list ap;
+
+    va_start(ap, format);
+    count = c99_vsnprintf(str, size, format, ap);
+    va_end(ap);
+
+    return count;
+}
+
+/* Taken from https://code.google.com/p/madp-win/source/browse/src/argp-standalone-1.3/strndup.c?r=2d96025e8ad4b150317ff6f0ff8d75c59a83cf97 */
+
+char *
+strndup (const char *s, size_t size)
+{
+  char *r;
+  const char *end = (const char*)memchr(s, 0, size);
+  
+  if (end)
+    /* Length + 1 */
+    size = end - s + 1;
+  
+  r = (char*)malloc(size);
+
+  if (size)
+    {
+      memcpy(r, s, size-1);
+      r[size-1] = '\0';
+    }
+  return r;
+}
+
+#endif
+
 class NodeCurlHttppost
 {
     public:
@@ -244,7 +296,11 @@ class NodeCurl
 		v8::Handle<v8::Value> cb = handle->Get(SYM_ON_END);
 		if (cb->IsFunction())
 		{
+#ifdef _MSC_VER
+			v8::Handle<v8::Value> argv[1];
+#else
 			v8::Handle<v8::Value> argv[] = {};
+#endif
 			cb->ToObject()->CallAsFunction(handle, 0, argv);
 		}
 	}
