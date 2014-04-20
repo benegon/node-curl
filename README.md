@@ -3,6 +3,20 @@ node-curl [![Build Status](https://secure.travis-ci.org/jiangmiao/node-curl.png?
 
 node cURL wrapper, support all options and infos.
 
+THIS IS A BRANCH MADE TO COMPILE ON WINDOWS! binding.gyp has broken Unix compatibility!
+
+Windows Build instructions
+==========================
+Required software: Visual Studio Express, node-gyp, and some bash interpreter (uI used git-bash)
+To build, run the following in your git-bash interpreter
+
+	npm install node-curl
+
+
+WINDOWS TODO:
+ * replace generate_curl_options_list.sh with a python or node script (to remove sh dependency)
+ * Fix binding.gyp so it is cross platform again.
+
 Quick Start
 -----------
 
