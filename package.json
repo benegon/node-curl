@@ -5,6 +5,9 @@
   "description": "node wrapper for multi curl, fully implemented.",
   "keywords" : ["node-curl", "curl", "multi-curl", "mcurl"],
   "homepage": "http://github.com/jiangmiao/node-curl",
+  "dependencies" : {
+    "bindings" : ">= 1.2.0"
+  },
   "repository" : {
     "type" : "git",
     "url" : "git://github.com/jiangmiao/node-curl.git"
